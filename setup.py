@@ -11,7 +11,7 @@ with open("requirements-dev.txt", "r") as fin:
 
 setuptools.setup(
     name="sag-py-execution-time-decorator",
-    version="0.1.0",
+    version="1.0.0",
     description="A decorator for methods to log the execution time (sync and async)",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
