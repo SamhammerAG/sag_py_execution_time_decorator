@@ -1,32 +1,41 @@
 import inspect
 import logging
 import time
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, Dict, Tuple, TypeVar, cast
 
 # With python 3.10 param spec can be used instead - as described here:
 # https://stackoverflow.com/questions/66408662/type-annotations-for-decorators
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def log_execution_time(log_level: int = logging.INFO, logger_name: str = __name__) -> Callable[[F], F]:
+def log_execution_time(
+    log_level: int = logging.INFO, logger_name: str = __name__, log_params: Tuple[str, ...] = ()
+) -> Callable[[F], F]:
+    """This decorator logs the execution time of sync and async methods
+
+    Args:
+        log_level (int, optional): The log level used for the log message. Defaults to logging.INFO.
+        logger_name (str, optional): A logger used for the log message. Defaults to __name__.
+        log_params (Tuple(str), optional): Parameters of the decorated function to be logged in 'extra'.
+
+    Returns:
+        F: The return value of the original function
+    """
+
     def decorator(func: F) -> F:
-        """This decorator logs the execution time of sync and async methods
-
-        Args:
-            func (F): The function that is decorated
-            log_level (int, optional): The log level used for the log message. Defaults to logging.INFO.
-            logger_name (str, optional): A logger used for the log message. Defaults to __name__.
-
-        Returns:
-            F: The return value of the original function
-        """
         if inspect.iscoroutinefunction(func):
 
             async def wrapper_async(*args: Any, **kw: Any) -> Any:
                 start_time = _get_current_time()
                 result = await func(*args, **kw)  # types: ignore
                 end_time = _get_current_time()
-                _calculate_and_log_execution_time(start_time, end_time, logger_name, log_level, func.__name__)
+                if log_params:
+                    extra_params = _get_extra_params(log_params, func, args, kw)
+                else:
+                    extra_params = {}
+                _calculate_and_log_execution_time(
+                    start_time, end_time, logger_name, log_level, func.__name__, extra_params
+                )
                 return result
 
             return cast(F, wrapper_async)
@@ -37,7 +46,13 @@ def log_execution_time(log_level: int = logging.INFO, logger_name: str = __name_
                 start_time = _get_current_time()
                 result = func(*args, **kw)
                 end_time = _get_current_time()
-                _calculate_and_log_execution_time(start_time, end_time, logger_name, log_level, func.__name__)
+                if log_params:
+                    extra_params = _get_extra_params(log_params, func, args, kw)
+                else:
+                    extra_params = {}
+                _calculate_and_log_execution_time(
+                    start_time, end_time, logger_name, log_level, func.__name__, extra_params
+                )
                 return result
 
             return cast(F, wrapper_sync)
@@ -50,11 +65,36 @@ def _get_current_time() -> int:
 
 
 def _calculate_and_log_execution_time(
-    start_time: int, end_time: int, logger_name: str, log_level: int, func_name: str
+    start_time: int, end_time: int, logger_name: str, log_level: int, func_name: str, extra_params: Dict[str, Any] = {}
 ) -> None:
     execution_time = end_time - start_time
 
     extra_args = {"function_name": func_name, "execution_time": execution_time}
+    extra_args.update(extra_params)
 
     time_logger = logging.getLogger(logger_name)
     time_logger.log(log_level, "%s took %s ms.", func_name, execution_time, extra=extra_args)
+
+
+def _get_extra_params(
+    log_params: Tuple[str, ...], func: F, func_args: Tuple[Any, ...], func_kwargs: Dict[str, Any]
+) -> Dict[str, Any]:
+    """This function filters parameters and their values of a given function and returns them as a dictionary.
+
+    Args:
+        log_params (tuple[str]): A tuple of parameter names to filter by.
+        func (F): The decorated function whose arguments are considered.
+        func_args (tuple): Arguments of the decorated function.
+        func_kwargs (Dict): Keyword arguments of the decorated function.
+
+    Returns:
+        dict: A dictionary of key/value-pairs
+    """
+    extra_params: Dict[str, Any] = {}
+
+    extra_params.update(zip(func.__code__.co_varnames, func_args))  # transform args to kwargs
+    extra_params.update(func_kwargs)
+
+    extra_params = {k: v for k, v in extra_params.items() if k in log_params}
+
+    return extra_params
