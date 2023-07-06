@@ -29,10 +29,7 @@ def log_execution_time(
                 start_time = _get_current_time()
                 result = await func(*args, **kw)  # types: ignore
                 end_time = _get_current_time()
-                if log_params:
-                    extra_params = _get_extra_params(log_params, func, args, kw)
-                else:
-                    extra_params = {}
+                extra_params = _get_params_to_log(log_params, func, args, kw)
                 _calculate_and_log_execution_time(
                     start_time, end_time, logger_name, log_level, func.__name__, extra_params
                 )
@@ -46,10 +43,7 @@ def log_execution_time(
                 start_time = _get_current_time()
                 result = func(*args, **kw)
                 end_time = _get_current_time()
-                if log_params:
-                    extra_params = _get_extra_params(log_params, func, args, kw)
-                else:
-                    extra_params = {}
+                extra_params = _get_params_to_log(log_params, func, args, kw)
                 _calculate_and_log_execution_time(
                     start_time, end_time, logger_name, log_level, func.__name__, extra_params
                 )
@@ -76,7 +70,7 @@ def _calculate_and_log_execution_time(
     time_logger.log(log_level, "%s took %s ms.", func_name, execution_time, extra=extra_args)
 
 
-def _get_extra_params(
+def _get_params_to_log(
     log_params: Tuple[str, ...], func: F, func_args: Tuple[Any, ...], func_kwargs: Dict[str, Any]
 ) -> Dict[str, Any]:
     """This function filters parameters and their values of a given function and returns them as a dictionary.
@@ -90,11 +84,11 @@ def _get_extra_params(
     Returns:
         dict: A dictionary of key/value-pairs
     """
-    extra_params: Dict[str, Any] = {}
+    params_dict_log: Dict[str, Any] = {}
 
-    extra_params.update(zip(func.__code__.co_varnames, func_args))  # transform args to kwargs
-    extra_params.update(func_kwargs)
+    if log_params:
+        if len(func.__code__.co_varnames) == len(func_args):
+            params_dict_log.update(zip(func.__code__.co_varnames, func_args))  # transform args to kwargs
+        params_dict_log.update(func_kwargs)
 
-    extra_params = {k: v for k, v in extra_params.items() if k in log_params}
-
-    return extra_params
+    return {k: v for k, v in params_dict_log.items() if k in log_params}
