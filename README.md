@@ -29,10 +29,11 @@ def decorated_sync_method(param: str) -> str:
     return f"test: {param}"
 
 
-@log_execution_time(log_level=logging.ERROR)
+@log_execution_time(log_level=logging.ERROR, log_params=("param",))
 async def decorated_async_method(param: str) -> str:
     await asyncio.sleep(SLEEP_TIME_MS / 1000)
     return f"test: {param}"
+
 ```
 
 Optional arguments:
@@ -40,6 +41,7 @@ Optional arguments:
 |-------------|----------------------------------------------------------------------|--------------------------|
 | log_level   | The log level integar. Use logging.* constants                       | logging.INFO             |
 | logger_name | The name of the logger that is internally used for logging.getLogger | execution_time_decorator |
+| log_params  | A tuple of parameter names to be logged with their values in 'extra' | ()                       |
 
 ## How to start developing
 
