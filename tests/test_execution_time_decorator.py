@@ -65,7 +65,7 @@ class PredictionControllerTest(TestCase):
             self.assertAlmostEqual(log_record.execution_time, SLEEP_TIME_MS, delta=100)
             self.assertEqual(log_record.function_name, "decorated_sync_method_extra_params")
             self.assertEqual(log_record.levelname, "INFO")
-            self.assertDictContainsSubset({"param": "input"}, log_record.__dict__)
+            assert set({"param": "input"}.items()).issubset(set(log_record.__dict__.items()))
             self.assertTrue("foo" not in log_record.__dict__.keys())
             self.assertEqual(actual, "test: input")
 
@@ -82,5 +82,5 @@ class PredictionControllerTest(TestCase):
             self.assertAlmostEqual(log_record.execution_time, SLEEP_TIME_MS, delta=100)
             self.assertEqual(log_record.function_name, "decorated_async_method_extra_params")
             self.assertEqual(log_record.levelname, "INFO")
-            self.assertDictContainsSubset({"param": "input"}, log_record.__dict__)
+            assert set({"param": "input"}.items()).issubset(set(log_record.__dict__.items()))
             self.assertEqual(actual, "test: input")
