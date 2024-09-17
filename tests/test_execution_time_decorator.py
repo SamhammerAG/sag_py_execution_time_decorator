@@ -71,7 +71,8 @@ class PredictionControllerTest(TestCase):
 
     def test_log_execution_time_async_extra_params_function(self) -> None:
         # Arrange
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
         # Act
         with self.assertLogs() as log_watcher:

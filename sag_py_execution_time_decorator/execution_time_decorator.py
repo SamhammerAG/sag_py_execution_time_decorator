@@ -1,7 +1,7 @@
 import inspect
 import logging
 import time
-from typing import Any, Callable, Dict, Tuple, TypeVar, cast
+from typing import Any, Callable, TypeVar, cast
 
 # With python 3.10 param spec can be used instead - as described here:
 # https://stackoverflow.com/questions/66408662/type-annotations-for-decorators
@@ -9,7 +9,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def log_execution_time(
-    log_level: int = logging.INFO, logger_name: str = __name__, log_params: Tuple[str, ...] = ()
+    log_level: int = logging.INFO, logger_name: str = __name__, log_params: tuple[str, ...] = ()
 ) -> Callable[[F], F]:
     """This decorator logs the execution time of sync and async methods
 
@@ -59,8 +59,16 @@ def _get_current_time() -> int:
 
 
 def _calculate_and_log_execution_time(
-    start_time: int, end_time: int, logger_name: str, log_level: int, func_name: str, extra_params: Dict[str, Any] = {}
+    start_time: int,
+    end_time: int,
+    logger_name: str,
+    log_level: int,
+    func_name: str,
+    extra_params: dict[str, Any] | None = None,
 ) -> None:
+    if extra_params is None:
+        extra_params = {}
+
     execution_time = end_time - start_time
 
     extra_args = {"function_name": func_name, "execution_time": execution_time}
@@ -71,8 +79,8 @@ def _calculate_and_log_execution_time(
 
 
 def _get_params_to_log(
-    log_params: Tuple[str, ...], func: F, func_args: Tuple[Any, ...], func_kwargs: Dict[str, Any]
-) -> Dict[str, Any]:
+    log_params: tuple[str, ...], func: F, func_args: tuple[Any, ...], func_kwargs: dict[str, Any]
+) -> dict[str, Any]:
     """This function filters parameters and their values of a given function and returns them as a dictionary.
 
     Args:
@@ -84,7 +92,7 @@ def _get_params_to_log(
     Returns:
         dict: A dictionary of key/value-pairs
     """
-    params_dict_log: Dict[str, Any] = {}
+    params_dict_log: dict[str, Any] = {}
 
     if log_params:
         if len(func.__code__.co_varnames) == len(func_args):
