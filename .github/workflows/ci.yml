@@ -32,7 +32,7 @@ jobs:
         run: mkdir -p ./ruff_failures
       - name: Lint with ruff
         run: |
-          ruff check --output-format github . || echo "sag_py_logging" >> ./ruff_failures/ruff_failures.txt
+          ruff check --output-format github . || echo "sag_py_execution_time_decorator" >> ./ruff_failures/ruff_failures.txt
       - name: Lint typing
         # Must run with installed dependencies
         run: |
