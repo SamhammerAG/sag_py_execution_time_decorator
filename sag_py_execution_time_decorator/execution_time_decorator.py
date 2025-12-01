@@ -9,7 +9,9 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def log_execution_time(
-    log_level: int = logging.INFO, logger_name: str = __name__, log_params: tuple[str, ...] = ()
+    log_level: int = logging.INFO,
+    logger_name: str = __name__,
+    log_params: tuple[str, ...] = (),
 ) -> Callable[[F], F]:
     """This decorator logs the execution time of sync and async methods
 
@@ -31,7 +33,12 @@ def log_execution_time(
                 end_time = _get_current_time()
                 extra_params = _get_params_to_log(log_params, func, args, kw)
                 _calculate_and_log_execution_time(
-                    start_time, end_time, logger_name, log_level, func.__name__, extra_params
+                    start_time,
+                    end_time,
+                    logger_name,
+                    log_level,
+                    func.__name__,
+                    extra_params,
                 )
                 return result
 
@@ -45,7 +52,12 @@ def log_execution_time(
                 end_time = _get_current_time()
                 extra_params = _get_params_to_log(log_params, func, args, kw)
                 _calculate_and_log_execution_time(
-                    start_time, end_time, logger_name, log_level, func.__name__, extra_params
+                    start_time,
+                    end_time,
+                    logger_name,
+                    log_level,
+                    func.__name__,
+                    extra_params,
                 )
                 return result
 
@@ -75,11 +87,16 @@ def _calculate_and_log_execution_time(
     extra_args.update(extra_params)
 
     time_logger = logging.getLogger(logger_name)
-    time_logger.log(log_level, "%s took %s ms.", func_name, execution_time, extra=extra_args)
+    time_logger.log(
+        log_level, "%s took %s ms.", func_name, execution_time, extra=extra_args
+    )
 
 
 def _get_params_to_log(
-    log_params: tuple[str, ...], func: F, func_args: tuple[Any, ...], func_kwargs: dict[str, Any]
+    log_params: tuple[str, ...],
+    func: F,
+    func_args: tuple[Any, ...],
+    func_kwargs: dict[str, Any],
 ) -> dict[str, Any]:
     """This function filters parameters and their values of a given function and returns them as a dictionary.
 
@@ -96,7 +113,9 @@ def _get_params_to_log(
 
     if log_params:
         if len(func.__code__.co_varnames) == len(func_args):
-            params_dict_log.update(zip(func.__code__.co_varnames, func_args))  # transform args to kwargs
+            params_dict_log.update(
+                zip(func.__code__.co_varnames, func_args)
+            )  # transform args to kwargs
         params_dict_log.update(func_kwargs)
 
     return {k: v for k, v in params_dict_log.items() if k in log_params}
