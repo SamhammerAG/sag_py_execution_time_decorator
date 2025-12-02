@@ -1,6 +1,5 @@
 -r requirements.txt
 build >=1.2.2.post1
-flake8
 mypy
 
 pytest
@@ -12,6 +11,7 @@ pytest-cov
 coverage
 coverage-lcov
 mock
+ruff
 toml
 types-mock
 
